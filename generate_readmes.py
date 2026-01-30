@@ -44,8 +44,8 @@ def extract_makefile_rules(makefile_path):
     try:
         with open(makefile_path, 'r') as f:
             content = f.read()
-            # Find targets (lines that start with word chars and have a colon)
-            pattern = r'^([a-zA-Z_][a-zA-Z0-9_-]*)\s*:'
+            # Find targets (lines that start with word chars and have a colon but not :=)
+            pattern = r'^([a-zA-Z_][a-zA-Z0-9_-]*)\s*:(?!=)'
             matches = re.finditer(pattern, content, re.MULTILINE)
             for match in matches:
                 rule = match.group(1)
@@ -88,6 +88,21 @@ def get_project_description(project_name):
     return f'A project from the 1337/42 School curriculum.'
 
 
+def is_library_project(makefile_path):
+    """Check if Makefile produces a library (.a file) rather than an executable."""
+    try:
+        with open(makefile_path, 'r') as f:
+            content = f.read()
+            # Look for NAME variable ending in .a
+            pattern = r'NAME\s*[?:]?=\s*(\S+\.a)'
+            match = re.search(pattern, content)
+            if match:
+                return True, match.group(1)
+    except Exception:
+        pass
+    return False, None
+
+
 def generate_c_project_readme(folder_path, folder_name):
     """Generate README for C projects with Makefile."""
     makefile_path = os.path.join(folder_path, 'Makefile')
@@ -104,7 +119,11 @@ This project uses a Makefile for compilation. Available rules:
 
 """
     
+    is_library = False
+    library_name = None
+    
     if os.path.exists(makefile_path):
+        is_library, library_name = is_library_project(makefile_path)
         rules = extract_makefile_rules(makefile_path)
         if rules:
             for rule in rules:
@@ -131,13 +150,27 @@ This project uses a Makefile for compilation. Available rules:
 ### Running
 """
     
-    # Try to determine the executable name
-    if os.path.exists(makefile_path):
+    # Provide appropriate instructions based on project type
+    if is_library and library_name:
+        content += f"This project produces a static library `{library_name}`.\n"
+        content += "To use it in your program, compile with:\n"
+        content += f"```bash\ngcc your_program.c -L. -l{library_name[3:-2]} -o your_program\n```\n"
+    elif os.path.exists(makefile_path):
         content += f"After compilation, run the executable:\n```bash\n./{folder_name}\n```\n"
     else:
         content += f"```bash\n./a.out\n```\n"
     
     return content
+
+
+def has_main_block(file_path):
+    """Check if a Python file has a __main__ block."""
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+            return 'if __name__' in content
+    except Exception:
+        return False
 
 
 def generate_python_project_readme(folder_path, folder_name):
@@ -154,11 +187,18 @@ This project contains Python scripts. To run them:
 
 """
     
-    # List Python files
+    # List Python files that have a main block
     py_files = sorted(Path(folder_path).glob('*.py'))
-    for py_file in py_files:
-        if py_file.name != '__init__.py':
+    executable_files = [f for f in py_files if f.name != '__init__.py' and has_main_block(f)]
+    
+    if executable_files:
+        for py_file in executable_files:
             content += f"```bash\npython3 {py_file.name}\n```\n\n"
+    else:
+        # If no files have main blocks, list all (except __init__.py)
+        for py_file in py_files:
+            if py_file.name != '__init__.py':
+                content += f"```bash\npython3 {py_file.name}\n```\n\n"
     
     content += """### Requirements
 Make sure you have Python 3 installed:
@@ -213,7 +253,7 @@ sudo vgdisplay
 
 # Check SSH status
 sudo systemctl status ssh
-sudo cat /etc/ssh/sshd_config | grep Port
+grep Port /etc/ssh/sshd_config
 
 # Check UFW status
 sudo ufw status verbose

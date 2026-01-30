@@ -39,7 +39,7 @@ sudo vgdisplay
 
 # Check SSH status
 sudo systemctl status ssh
-sudo cat /etc/ssh/sshd_config | grep Port
+grep Port /etc/ssh/sshd_config
 
 # Check UFW status
 sudo ufw status verbose

@@ -15,7 +15,8 @@ This project uses a Makefile for compilation. Available rules:
 - `make bonus`: Compile with bonus features
 
 ### Running
-After compilation, run the executable:
+This project produces a static library `libft.a`.
+To use it in your program, compile with:
 ```bash
-./libft
+gcc your_program.c -L. -lft -o your_program
 ```

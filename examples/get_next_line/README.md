@@ -14,7 +14,8 @@ This project uses a Makefile for compilation. Available rules:
 - `make re`: Recompile the project
 
 ### Running
-After compilation, run the executable:
+This project produces a static library `get_next_line.a`.
+To use it in your program, compile with:
 ```bash
-./get_next_line
+gcc your_program.c -L. -l_next_line -o your_program
 ```

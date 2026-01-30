@@ -12,10 +12,6 @@ This project contains Python scripts. To run them:
 python3 main.py
 ```
 
-```bash
-python3 utils.py
-```
-
 ### Requirements
 Make sure you have Python 3 installed:
 ```bash
