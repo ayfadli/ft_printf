@@ -154,7 +154,13 @@ This project uses a Makefile for compilation. Available rules:
     if is_library and library_name:
         content += f"This project produces a static library `{library_name}`.\n"
         content += "To use it in your program, compile with:\n"
-        content += f"```bash\ngcc your_program.c -L. -l{library_name[3:-2]} -o your_program\n```\n"
+        # Extract library name: remove 'lib' prefix and '.a' suffix if present
+        lib_flag = library_name
+        if lib_flag.startswith('lib'):
+            lib_flag = lib_flag[3:]
+        if lib_flag.endswith('.a'):
+            lib_flag = lib_flag[:-2]
+        content += f"```bash\ngcc your_program.c -L. -l{lib_flag} -o your_program\n```\n"
     elif os.path.exists(makefile_path):
         content += f"After compilation, run the executable:\n```bash\n./{folder_name}\n```\n"
     else:

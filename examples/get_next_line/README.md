@@ -17,5 +17,5 @@ This project uses a Makefile for compilation. Available rules:
 This project produces a static library `get_next_line.a`.
 To use it in your program, compile with:
 ```bash
-gcc your_program.c -L. -l_next_line -o your_program
+gcc your_program.c -L. -lget_next_line -o your_program
 ```
